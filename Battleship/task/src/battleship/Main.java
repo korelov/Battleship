@@ -88,6 +88,29 @@ public class Main {
         }
     }
 
+    private void printFogOfWarField() {
+        int c = 65;
+        System.out.print("  1 2 3 4 5 6 7 8 9 10\n");
+        for (String[] strings : field) {
+            System.out.print((char) c++ + " ");
+            for (int j = 0; j < strings.length; j++) {
+                if (j < field.length - 1) {
+                    if (strings[j].equals("O")) {
+                        System.out.print("~" + " ");
+                    } else {
+                        System.out.print(strings[j] + " ");
+                    }
+                } else {
+                    if (strings[j].equals("O")) {
+                        System.out.print("~");
+                    } else
+                        System.out.print(strings[j]);
+                }
+            }
+            System.out.println();
+        }
+    }
+
 
     private void checkCoordinates() {
 
@@ -100,12 +123,12 @@ public class Main {
         columnsDigit2 = getCoordinatesTwo().substring(1);
 
         if (getCoordinatesOne().length() < 2 || getCoordinatesTwo().length() < 2 && getCoordinatesOne().length() > 3 || getCoordinatesTwo().length() > 3) {
-            System.out.println("coordinate format A-Z 1-10");
+            System.out.println("coordinate format A-J 1-10");
             checkCoordinates();
         }
         if (rowChar1.charAt(0) < 'A' || rowChar1.charAt(0) > 'J' || rowChar2.charAt(0) < 'A' ||
                 rowChar2.charAt(0) > 'J') {
-            System.out.println("coordinate format A-Z 1-10");
+            System.out.println("coordinate format A-J 1-10");
         }
         if (rowChar1.charAt(0) == rowChar2.charAt(0) && Integer.parseInt(columnsDigit1) != Integer.parseInt(columnsDigit2)) {
             setRow(vertical.indexOf(rowChar1.charAt(0)));
@@ -164,18 +187,20 @@ public class Main {
     private void checkShot() {
         if (field[getRow()][getColumns()].equals("O")) {
             field[getRow()][getColumns()] = "X";
-            printField();
+            printFogOfWarField();
             System.out.println("You hit a ship!");
+            printField();
         } else {
             field[getRow()][getColumns()] = "M";
-            printField();
+            printFogOfWarField();
             System.out.println("You missed!");
+            printField();
         }
     }
 
     public void startGame() {
         System.out.println("The game starts!");
-        printField();
+        printFogOfWarField();
         shotCoordinate();
     }
 
