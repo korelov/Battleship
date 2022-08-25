@@ -1,11 +1,13 @@
 package battleship;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Scanner;
 
 public class Main {
     public Scanner scanner = new Scanner(System.in);
-    protected static String[][] field;
+    public String name;
+    protected String[][] field;
     private String position;
     private String CoordinatesOne;
     private String CoordinatesTwo;
@@ -21,15 +23,19 @@ public class Main {
     public int getRow() {
         return row;
     }
+    public String getName() {
+        return name;
+    }
 
+    public void setName(String name) {
+        this.name = name;
+    }
     public void setRow(int row) {
         this.row = row;
     }
-
     public int getColumns() {
         return columns;
     }
-
     public void setColumns(int columns) {
         this.columns = columns;
     }
@@ -63,14 +69,14 @@ public class Main {
     public Main() {
     }
 
-    private void makeField() {
+    public void makeField() {
         field = new String[10][10];
         for (String[] strings : field) {
             Arrays.fill(strings, "~");
         }
     }
 
-    private void printField() {
+    public void printField() {
         int c = 65;
         System.out.print("  1 2 3 4 5 6 7 8 9 10\n");
         for (String[] strings : field) {
@@ -86,7 +92,7 @@ public class Main {
         }
     }
 
-    private void printFogOfWarField() {
+    public void printFogOfWarField() {
         int c = 65;
         System.out.print("  1 2 3 4 5 6 7 8 9 10\n");
         for (String[] strings : field) {
@@ -109,7 +115,7 @@ public class Main {
         }
     }
 
-    private void checkCoordinates() {
+    public void checkCoordinates() {
 
         setCoordinatesOne(scanner.next());
         setCoordinatesTwo(scanner.next());
@@ -125,8 +131,10 @@ public class Main {
             checkCoordinates();
         }
         if (rowChar1.charAt(0) < 'A' || rowChar1.charAt(0) > 'J' || rowChar2.charAt(0) < 'A' ||
-                rowChar2.charAt(0) > 'J') {
+                rowChar2.charAt(0) > 'J' || Integer.parseInt(columnsDigit1) < 1 || Integer.parseInt(columnsDigit1) > 10
+                || Integer.parseInt(columnsDigit2) < 1 || Integer.parseInt(columnsDigit2) > 10) {
             System.out.println("coordinate format A-J 1-10");
+            checkCoordinates();
         }
         if (rowChar1.charAt(0) == rowChar2.charAt(0) && Integer.parseInt(columnsDigit1) != Integer.parseInt(columnsDigit2)) {
             setRow(vertical.indexOf(rowChar1.charAt(0)));
@@ -153,7 +161,7 @@ public class Main {
                 System.out.printf("Error! Wrong length of the %s! Try again:\n", ship.getName());
                 shipOnField(ship);
             } else {
-                if (shipCheck(ship)) {
+                if (isAvailable(ship, position)) {
                     for (int i = 0; i < ship.getRow(); i++) {
                         field[getRow()][getColumns() + i] = "O";
                     }
@@ -168,7 +176,7 @@ public class Main {
                 System.out.printf("Error! Wrong length of the %s! Try again:\n", ship.getName());
                 shipOnField(ship);
             } else {
-                if (shipCheck(ship)) {
+                if (isAvailable(ship, position)) {
                     for (int i = 0; i < ship.getRow(); i++) {
                         field[getRow() + i][getColumns()] = "O";
                     }
@@ -181,41 +189,28 @@ public class Main {
         }
     }
 
-    private void checkShot() {
+    public void checkShot(String[][] field) {
 
         if (field[getRow()][getColumns()].equals("O") || field[getRow()][getColumns()].equals("X")) {
             field[getRow()][getColumns()] = "X";
-            if (!sankShip()) {
-                if (checkGameEmd()) {
+            if (!sankShip(field)) {
+                if (checkGameEmd(field)) {
                     printFogOfWarField();
                     System.out.println("You sank the last ship. You won. Congratulations!");
                 } else {
-                    printFogOfWarField();
                     System.out.println("You sank a ship! Specify a new target:");
                 }
             } else {
-                printFogOfWarField();
                 System.out.println("You hit a ship! Try again:");
             }
         }
         if (field[getRow()][getColumns()].equals("~")) {
             field[getRow()][getColumns()] = "M";
-            printFogOfWarField();
             System.out.println("You missed. Try again:");
         }
     }
 
-    public void startGame() {
-        System.out.println("The game starts!");
-        printFogOfWarField();
-        System.out.println("Take a shot!");
-        do {
-            shotCoordinate();
-            checkShot();
-        } while (!checkGameEmd());
-    }
-
-    public boolean checkGameEmd() {
+    public boolean checkGameEmd(String[][] field) {
         boolean result = true;
         for (String[] strings : field) {
             for (String string : strings) {
@@ -244,99 +239,47 @@ public class Main {
         }
     }
 
-    public static void main(String[] args) {
+    public boolean isAvailable(Ship ship, String position) {
 
-        Main main = new Main();
-        main.makeField();
-        main.printField();
-        for (int i = 0; i < Ship.values().length; i++) {
-            main.shipOnField(Ship.values()[i]);
+        int x = getRow();
+        int y = getColumns();
+        int count = ship.getRow();
+        while (count != 0) {
+            for (int i = 0; i < ship.getRow(); i++) {
+                int xi = 0;
+                int yi = 0;
+                if (position.equals("Horizontal")) {
+                    yi = i;
+                } else {
+                    xi = i;
+                }
+                if (x + 1 + xi < field.length && x + 1 + xi >= 0) {
+                    if (field[x + 1 + xi][y + yi].equals("O")) {
+                        return false;
+                    }
+                }
+                if (x - 1 + xi < field.length && x - 1 + xi >= 0) {
+                    if (field[x - 1 + xi][y + yi].equals("O")) {
+                        return false;
+                    }
+                }
+                if (y + 1 + yi < field.length && y + 1 + yi >= 0) {
+                    if (field[x + xi][y + 1 + yi].equals("O")) {
+                        return false;
+                    }
+                }
+                if (y - 1 + yi < field.length && y - 1 + yi >= 0) {
+                    if (field[x + xi][y - 1 + yi].equals("O")) {
+                        return false;
+                    }
+                }
+            }
+            count--;
         }
-        main.startGame();
+        return true;
     }
 
-    public boolean shipCheck(Ship ship) {
-        boolean result = true;
-
-        if (getRow() == 0 && getColumns() == 0) {
-            for (int i = getRow(); i < getRow() + ship.getRow() + 1; i++) {
-                if (field[i][getColumns()].equals("O") || field[i][getColumns() + 1].equals("O")) {
-                    result = false;
-                    break;
-                }
-            }
-        }
-        if (getRow() == 0 && getColumns() > 0 && getColumns() < 9) {
-            for (int i = getRow(); i < getRow() + ship.getRow() + 1; i++) {
-                if (field[i][getColumns()].equals("O") || field[i][getColumns() + 1].equals("O") ||
-                        field[i][getColumns() - 1].equals("O")) {
-                    result = false;
-                    break;
-                }
-            }
-        }
-        if (getRow() == 0 && getColumns() == 9) {
-            for (int i = getRow(); i < getRow() + ship.getRow() + 1; i++) {
-                if (field[i][getColumns()].equals("O") || field[i][getColumns() - 1].equals("O")) {
-                    result = false;
-                    break;
-                }
-            }
-        }
-        if (getRow() > 0 && getRow() + ship.getRow() <= 9 && getColumns() == 0) {
-            for (int i = getRow() - 1; i < getRow() + ship.getRow() + 1; i++) {
-                if (field[i][getColumns()].equals("O") || field[i][getColumns() + 1].equals("O")) {
-                    result = false;
-                    break;
-                }
-            }
-        }
-        if (getRow() > 0 && getRow() + ship.getRow() <= 9 && getColumns() > 0 && getColumns() < 9) {
-            for (int i = getRow() - 1; i < getRow() + ship.getRow() + 1; i++) {
-                if (field[i][getColumns()].equals("O") || field[i][getColumns() - 1].equals("O") ||
-                        field[i][getColumns() + 1].equals("O")) {
-                    result = false;
-                    break;
-                }
-            }
-        }
-        if (getRow() > 0 && getRow() + ship.getRow() <= 9 && getColumns() == 9) {
-            for (int i = getRow() - 1; i < getRow() + ship.getRow() + 1; i++) {
-                if (field[i][getColumns()].equals("O") || field[i][getColumns() - 1].equals("O")) {
-                    result = false;
-                    break;
-                }
-            }
-        }
-        if (getRow() > 0 && getRow() + ship.getRow() == 10 && getColumns() == 0) {
-            for (int i = getRow() - 1; i < getRow() + ship.getRow(); i++) {
-                if (field[i][getColumns()].equals("O") || field[i][getColumns() + 1].equals("O")) {
-                    result = false;
-                    break;
-                }
-            }
-        }
-        if (getRow() > 0 && getRow() + ship.getRow() == 10 && getColumns() > 0 && getColumns() < 9) {
-            for (int i = getRow() - 1; i < getRow() + ship.getRow(); i++) {
-                if (field[i][getColumns()].equals("O") || field[i][getColumns() - 1].equals("O") ||
-                        field[i][getColumns() + 1].equals("O")) {
-                    result = false;
-                    break;
-                }
-            }
-        }
-        if (getRow() > 0 && getRow() + ship.getRow() == 10 && getColumns() == 9) {
-            for (int i = getRow() - 1; i < getRow() + ship.getRow(); i++) {
-                if (field[i][getColumns()].equals("O") || field[i][getColumns() - 1].equals("O")) {
-                    result = false;
-                    break;
-                }
-            }
-        }
-        return result;
-    }
-
-    public boolean sankShip() {
+    public boolean sankShip(String[][] field) {
         boolean result = false;
 
         if (getRow() == 0 && getColumns() == 0) {
@@ -374,5 +317,13 @@ public class Main {
         return result;
     }
 
+    public static void promptEnterKey() {
+        System.out.println("Press Enter and pass the move to another player");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
 
